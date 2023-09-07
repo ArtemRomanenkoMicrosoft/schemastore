@@ -1,4 +1,4 @@
-{
+﻿{
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "LSDL Schema",
   "description": "Linguistic Schema Definition Language schema",
@@ -6,7 +6,7 @@
   "properties": {
     "Version": {
       "description": "Version of LSDL",
-      "enum": [ "3.3.0" ]
+      "enum": [ "1.3.0" ]
     },
     "Language": {
       "description": "Target language for the linguistic schema",
@@ -43,10 +43,6 @@
     "Examples": {
       "description": "Examples associated with the linguistic schema.",
       "$ref": "#/definitions/examples"
-    },
-    "Agents": {
-      "description": "A list of agents that have modified this linguistic schema.",
-      "$ref": "#/definitions/agents"
     }
   },
   "required": [ "Version", "Language" ],
@@ -73,41 +69,6 @@
       "description": "Indicates the state of an object in the linguistic schema.",
       "enum": [ "Authored", "Generated", "Suggested", "Deleted" ],
       "default": "Authored"
-    },
-
-    "propertyState": {
-      "description": "Indicates the state of a property on a linguistic schema item.",
-      "enum": [ "Default", "Authored", "Generated", "Suggested" ],
-      "default": "Default"
-    },
-
-    "visibility": {
-      "description": "Indicates whether the entity is hidden.",
-      "enum": [ "Visible", "Hidden", "Children" ],
-      "default": "Visible"
-    },
-
-    "visibilityProperty": {
-      "description": "Indicates whether the entity is hidden.",
-      "oneOf": [
-        { "$ref": "#/definitions/visibility" },
-        { "$ref": "#/definitions/fullVisibilityProperty" }
-      ]
-    },
-
-    "fullVisibilityProperty": {
-      "description": "Indicates whether the entity is hidden.",
-      "type": "object",
-      "properties": {
-        "Value": {
-          "$ref": "#/definitions/visibility"
-        },
-        "State": {
-          "description": "The state of the visibility property",
-          "$ref": "#/definitions/propertyState"
-        }
-      },
-      "required": [ "Value" ]
     },
 
     "source": {
@@ -188,16 +149,22 @@
       "description": "An entity in the linguistic schema",
       "type": "object",
       "properties": {
-        "Definition": {
-          "$ref": "#/definitions/entityDefinition"
+        "Binding": {
+          "description": "The conceptual model object which represents the entity",
+          "oneOf": [
+            { "$ref": "#/definitions/conceptualEntityBinding" },
+            { "$ref": "#/definitions/conceptualPropertyBinding" },
+            { "$ref": "#/definitions/hierarchyBinding" },
+            { "$ref": "#/definitions/hierarchyLevelBinding" }
+          ]
         },
         "State": {
           "description": "The state of the entity",
           "$ref": "#/definitions/state"
         },
-        "Visibility": {
-          "description": "Indicates whether the entity is hidden. Hidden entities are ignored for all purposes other than being available nodes along paths between other related entities.",
-          "$ref": "#/definitions/visibilityProperty"
+        "Hidden": {
+          "description": "Indicates the entity is hidden. Hidden entities are ignored for all purposes other than being available nodes along paths between other related entities.",
+          "type": "boolean"
         },
         "Weight": {
           "description": "The weight to apply to this entity",
@@ -222,15 +189,6 @@
             "Duration"
           ]
         },
-        "NameType": {
-          "description": "Indicates whether this entity represents the Name or ID of something",
-          "enum": [
-            "None",
-            "Name",
-            "Identifier"
-          ],
-          "default": "None"
-        },
         "Units": {
           "description": "Nouns which indicate the units represented in this numeric property entity.",
           "$ref": "#/definitions/terms"
@@ -238,55 +196,9 @@
         "Instances": {
           "description": "Defines how instance values from the model are recognized",
           "$ref": "#/definitions/instances"
-        },
-        "ImplicitGroupings": {
-          "description": "A list of related entities which are used to group the query when this entity is shown",
-          "$ref": "#/definitions/entityReferences"
-        }
-      },
-      "required": [ "Definition" ],
-      "additionalProperties": false
-    },
-
-    "entityDefinition": {
-      "description": "The definition for an entity",
-      "oneOf": [
-        { "$ref": "#/definitions/bindingEntityDefinition" },
-        { "$ref": "#/definitions/textEntityDefinition" }
-      ]
-    },
-
-    "bindingEntityDefinition": {
-      "type": "object",
-      "properties": {
-        "Binding": {
-          "description": "The conceptual model object binding",
-          "$ref": "#/definitions/entityBinding"
         }
       },
       "required": [ "Binding" ],
-      "additionalProperties": false
-    },
-
-    "entityBinding": {
-      "description": "The conceptual model object binding for an entity",
-      "oneOf": [
-        { "$ref": "#/definitions/conceptualEntityBinding" },
-        { "$ref": "#/definitions/conceptualPropertyBinding" },
-        { "$ref": "#/definitions/hierarchyBinding" },
-        { "$ref": "#/definitions/hierarchyLevelBinding" }
-      ]
-    },
-
-    "textEntityDefinition": {
-      "type": "object",
-      "properties": {
-        "Text": {
-          "description": "The textual definition",
-          "$ref": "#/definitions/nonEmptyString"
-        }
-      },
-      "required": [ "Text" ],
       "additionalProperties": false
     },
 
@@ -572,7 +484,7 @@
       "properties": {
         "Index": {
           "description": "Indicates whether the values of this entity should be available in the term index, enabling recognition, completion, and suggestions.",
-          "enum": [ "Default", "All", "None" ],
+          "enum": [ "Default", "None" ],
           "default": "Default"
         },
         "PluralNormalization": {
@@ -624,13 +536,6 @@
       },
       "required": [ "Binding" ],
       "additionalProperties": false
-    },
-
-    "entityReferences": {
-      "description": "The list of entity references",
-      "type": "array",
-      "items": { "$ref": "#/definitions/entityReference" },
-      "minItems": 1
     },
 
     "relationships": {
@@ -794,20 +699,6 @@
         "Target": {
           "description": "A role in the relationship to compare to the value",
           "$ref": "#/definitions/roleReference"
-        },
-        "Aggregation": {
-          "description": "An aggregate function applied to the role",
-          "enum": [
-            "None",
-            "Sum",
-            "Average",
-            "Count",
-            "Min",
-            "Max",
-            "Median",
-            "Variance",
-            "StandardDeviation"
-          ]
         },
         "Operator": {
           "description": "The operator with which to compare the value and the role",
@@ -1071,61 +962,57 @@
     "adjectivePhrasingProperties": {
       "description": "Properties of an adjective phrasing",
       "oneOf": [
-        { "$ref": "#/definitions/adjectivePhrasingProperty" },
-        { "$ref": "#/definitions/antonymPhrasingProperty" }
+        {
+          "type": "object",
+          "properties": {
+            "Subject": {
+              "description": "The entity which is described via an adjective",
+              "$ref": "#/definitions/roleReference"
+            },
+            "Adjectives": {
+              "description": "Adjectives used to describe the Subject (with a high measurement)",
+              "$ref": "#/definitions/terms"
+            },
+            "Antonyms": {
+              "description": "Adjectives used to describe the Subject (with a low measurement)",
+              "$ref": "#/definitions/terms"
+            },
+            "Measurement": {
+              "description": "The entity which measures the extent to which the Adjectives apply",
+              "$ref": "#/definitions/roleReference"
+            },
+            "PrepositionalPhrases": {
+              "description": "Additional prepositional phrases which apply to the phrasing",
+              "$ref": "#/definitions/prepPhrases"
+            }
+          },
+          "required": [ "Subject", "Adjectives" ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "Subject": {
+              "description": "The entity which is described via an adjective",
+              "$ref": "#/definitions/roleReference"
+            },
+            "Antonyms": {
+              "description": "Adjectives used to describe the Subject (with a low measurement)",
+              "$ref": "#/definitions/terms"
+            },
+            "Measurement": {
+              "description": "The entity which measures the extent to which the Adjectives apply",
+              "$ref": "#/definitions/roleReference"
+            },
+            "PrepositionalPhrases": {
+              "description": "Additional prepositional phrases which apply to the phrasing",
+              "$ref": "#/definitions/prepPhrases"
+            }
+          },
+          "required": [ "Subject", "Antonyms" ],
+          "additionalProperties": false
+        }
       ]
-    },
-
-    "adjectivePhrasingProperty": {
-      "type": "object",
-      "properties": {
-        "Subject": {
-          "description": "The entity which is described via an adjective",
-          "$ref": "#/definitions/roleReference"
-        },
-        "Adjectives": {
-          "description": "Adjectives used to describe the Subject (with a high measurement)",
-          "$ref": "#/definitions/terms"
-        },
-        "Antonyms": {
-          "description": "Adjectives used to describe the Subject (with a low measurement)",
-          "$ref": "#/definitions/terms"
-        },
-        "Measurement": {
-          "description": "The entity which measures the extent to which the Adjectives apply",
-          "$ref": "#/definitions/roleReference"
-        },
-        "PrepositionalPhrases": {
-          "description": "Additional prepositional phrases which apply to the phrasing",
-          "$ref": "#/definitions/prepPhrases"
-        }
-      },
-      "required": [ "Subject", "Adjectives" ],
-      "additionalProperties": false
-    },
-
-    "antonymPhrasingProperty": {
-      "type": "object",
-      "properties": {
-        "Subject": {
-          "description": "The entity which is described via an adjective",
-          "$ref": "#/definitions/roleReference"
-        },
-        "Antonyms": {
-          "description": "Adjectives used to describe the Subject (with a low measurement)",
-          "$ref": "#/definitions/terms"
-        },
-        "Measurement": {
-          "description": "The entity which measures the extent to which the Adjectives apply",
-          "$ref": "#/definitions/roleReference"
-        },
-        "PrepositionalPhrases": {
-          "description": "Additional prepositional phrases which apply to the phrasing",
-          "$ref": "#/definitions/prepPhrases"
-        }
-      },
-      "required": [ "Subject", "Antonyms" ],
-      "additionalProperties": false
     },
 
     "dynamicAdjectivePhrasing": {
@@ -1455,31 +1342,6 @@
         "TemplateSchema": {
           "description": "Identifies the shared template schema from which the example is derived",
           "$ref": "#/definitions/templateSchema"
-        }
-      },
-      "additionalProperties": false
-    },
-
-    "agents": {
-      "description": "A list of agents that have modified this linguistic schema",
-      "type": "object",
-      "patternProperties": {
-        "^.+$": {
-          "description": "Properties of the term",
-          "$ref": "#/definitions/agentProperties"
-        }
-      },
-      "additionalProperties": false,
-      "minProperties": 1
-    },
-
-    "agentProperties": {
-      "description": "Properties of an agent in the linguistic schema",
-      "type": "object",
-      "properties": {
-        "LastModified": {
-          "description": "Indicates the last date and time (in UTC) that this agent modified the linguistic schema.",
-          "$ref": "#/definitions/dateTime"
         }
       },
       "additionalProperties": false
